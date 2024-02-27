@@ -1,6 +1,3 @@
-import 'dart:ffi';
-
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:helper/data/models/url_model.dart';
 import 'package:helper/helper.dart';
@@ -11,12 +8,13 @@ mixin ApiHelperMixin {
   /// [urls] list of url provided from user ..
   List<UrlModel> urls = [];
 
-  ///[isLoadData] list of RxBool provided from package as {type_url , status}
+  ///[isLodData] list of RxBool provided from package as {type_url , status}
   Rx<Map<String, RxBool>> isLodData = Rx({});
   Rx<Map<String, ApiCallStatus>> statusLodData = Rx({});
 
   ///[isLoad] indicated for all status requests any request it tack true status
   RxBool isLoad = RxBool(false);
+  RxBool isPostData = RxBool(false);
 
   ///
 
@@ -31,8 +29,10 @@ mixin ApiHelperMixin {
   /// get single request from url type
   getSingleData({required UrlModel url, Map<String, dynamic>? headers}) async {
     isLoad.value = true;
+    statusLodData.value[url.type] = ApiCallStatus.loading;
     isLodData.value[url.type]?.value = true;
-    BaseClient.safeApiCall(
+
+    BaseClient.apiCall(
       type: url.type,
       headers: headers,
       onError: (ApiException exception, String type) {
@@ -49,7 +49,7 @@ mixin ApiHelperMixin {
           isLodData.value[type]?.value = false;
           _checkLoad();
         } catch (e, s) {
-          Logger().i(s);
+          Logger().e("Error $e \n stak tree  $s");
         }
       },
       url: url.url,
@@ -58,7 +58,7 @@ mixin ApiHelperMixin {
   }
 
   /// get all requests
-  Future<void> getData({Map<String, dynamic>? headers}) async {
+  void getData({Map<String, dynamic>? headers}) {
     /// starting get data
     ///
     isLoad = RxBool(true);
@@ -69,7 +69,7 @@ mixin ApiHelperMixin {
       statusLodData.value[element.type] = ApiCallStatus.loading;
     }
     for (UrlModel url in urls) {
-      BaseClient.safeApiCall(
+      BaseClient.apiCall(
         type: url.type,
         headers: headers,
         onError: (ApiException exception, String type) {
@@ -103,5 +103,46 @@ mixin ApiHelperMixin {
       }
     });
     isLoad.value = !isFinish;
+  }
+
+  Future postData({
+    required String url,
+    Function(int, int)? onReceiveProgress,
+    required dynamic data,
+    required OnSuccess onSuccess,
+    required OnError onError,
+    Map<String, dynamic>? headers,
+    Function(int, int)? onSendProgress,
+    Map<String, dynamic>? queryParameters,
+
+    ///[requestType] for change from post request to put request
+    RequestType requestType = RequestType.post,
+  }) async {
+    assert(requestType == RequestType.post || requestType == RequestType.put,
+        "please provide  `requestType` post or put  your vale id $requestType");
+
+    if (!isPostData.value) {
+      isPostData.value = true;
+      return await BaseClient.apiCall(
+          url: url,
+          type: 'post',
+          requestType: requestType,
+          onSuccess: (response, type) {
+            isPostData.value = false;
+            onSuccess(response, type);
+          },
+          onReceiveProgress: onReceiveProgress,
+          data: data,
+          headers: headers,
+          onError: (exception, type) {
+            isPostData.value = false;
+            onErrorApi(exception, type);
+            if (onError != null) {
+              onError(exception, type);
+            }
+          },
+          onSendProgress: onSendProgress,
+          queryParameters: queryParameters);
+    }
   }
 }

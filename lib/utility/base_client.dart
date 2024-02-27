@@ -36,9 +36,9 @@ class BaseClient {
   static get dio => _dio;
 
   /// perform safe api request
-  static Future safeApiCall({
+  static Future apiCall({
     required String url,
-    required String? type,
+    required String type,
     required RequestType requestType,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? queryParameters,
@@ -91,7 +91,7 @@ class BaseClient {
         );
       }
       // 3) return response (api done successfully)
-      await onSuccess(response, type ?? '');
+      await onSuccess(response, type);
     } on DioException catch (error) {
       // dio error (api reach the server but not performed successfully
       _handleDioError(
@@ -99,7 +99,7 @@ class BaseClient {
           url: url,
           onError: (ex) {
             if (onError != null) {
-              onError(ex, type ?? '');
+              onError(ex, type);
             }
           });
       Exception(error);
@@ -109,7 +109,7 @@ class BaseClient {
           url: url,
           onError: (ex) {
             if (onError != null) {
-              onError(ex, type ?? '');
+              onError(ex, type);
             }
           });
       Exception("helper socket exception $url");
@@ -119,7 +119,7 @@ class BaseClient {
           url: url,
           onError: (ex) {
             if (onError != null) {
-              onError(ex, type ?? '');
+              onError(ex, type);
             }
           });
       Exception("helper time out  exception $url");
@@ -131,7 +131,7 @@ class BaseClient {
           url: url,
           onError: (ex) {
             if (onError != null) {
-              onError(ex, type ?? '');
+              onError(ex, type);
             }
           },
           error: error);
@@ -218,23 +218,23 @@ class BaseClient {
     // 404 error
     if (error.response?.statusCode == 404) {
       if (onError != null) {
-        return onError(ApiException(
+        onError(ApiException(
           message: Strings.fromLocal().get(key: StringsEnum.urlNotFound),
           url: url,
           statusCode: 404,
         ));
       }
-      // else {
+
       return _handleError(
           Strings.fromLocal().get(key: StringsEnum.urlNotFound));
-      // }
+
     }
 
     // no internet connection
     if (error.message != null &&
         error.message!.toLowerCase().contains('socket')) {
       if (onError != null) {
-        return onError(ApiException(
+          onError(ApiException(
           message:
               Strings.fromLocal().get(key: StringsEnum.noInternetConnection),
           url: url,
@@ -255,7 +255,7 @@ class BaseClient {
       );
 
       if (onError != null) {
-        return onError(exception);
+         onError(exception);
       }
       // else {
       return handleApiError(exception);
