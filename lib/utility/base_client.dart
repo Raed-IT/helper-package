@@ -227,14 +227,13 @@ class BaseClient {
 
       return _handleError(
           Strings.fromLocal().get(key: StringsEnum.urlNotFound));
-
     }
 
     // no internet connection
     if (error.message != null &&
         error.message!.toLowerCase().contains('socket')) {
       if (onError != null) {
-          onError(ApiException(
+        onError(ApiException(
           message:
               Strings.fromLocal().get(key: StringsEnum.noInternetConnection),
           url: url,
@@ -255,13 +254,13 @@ class BaseClient {
       );
 
       if (onError != null) {
-         onError(exception);
+        onError(exception);
       }
       // else {
       return handleApiError(exception);
       // }
     }
-
+    Logger().e(error.error);
     var exception = ApiException(
         url: url,
         message: error.message ??
