@@ -27,8 +27,16 @@ mixin ApiHelperMixin {
   onErrorApi(ApiException exception, String type) {}
 
   /// get single request from url type
-  getSingleData({required UrlModel url, Map<String, dynamic>? headers}) async {
-    isLoad.value = true;
+  getSingleData({
+    required UrlModel url,
+    Map<String, dynamic>? headers,
+    bool isRespectIsLoad = true,
+    Function()? onSuccess,
+    Function()? onError,
+  }) async {
+    if (isRespectIsLoad) {
+      isLoad.value = true;
+    }
     statusLodData.value[url.type] = ApiCallStatus.loading;
     isLodData.value[url.type]?.value = true;
 
@@ -36,6 +44,9 @@ mixin ApiHelperMixin {
       type: url.type,
       headers: headers,
       onError: (ApiException exception, String type) {
+        if (onError != null) {
+          onError();
+        }
         statusLodData.value[type] = ApiCallStatus.error;
         isLodData.value[type]?.value = false;
         onErrorApi(exception, type);
@@ -44,6 +55,52 @@ mixin ApiHelperMixin {
       queryParameters: url.parameter,
       onSuccess: (re, type) {
         try {
+          if (onSuccess != null) {
+            onSuccess();
+          }
+          getDataFromJson(json: re.data, type: url.type);
+          statusLodData.value[type] = ApiCallStatus.success;
+          isLodData.value[type]?.value = false;
+          _checkLoad();
+        } catch (e, s) {
+          Logger().e("Error $e \n stak tree  $s");
+        }
+      },
+      url: url.url,
+      requestType: RequestType.get,
+    );
+  }
+
+  Future<void> getSingleDataWithSync({
+    required UrlModel url,
+    Map<String, dynamic>? headers,
+    bool isRespectIsLoad = true,
+    Function()? onSuccess,
+    Function()? onError,
+  }) async {
+    if (isRespectIsLoad) {
+      isLoad.value = true;
+    }
+    statusLodData.value[url.type] = ApiCallStatus.loading;
+    isLodData.value[url.type]?.value = true;
+    await BaseClient.apiCall(
+      type: url.type,
+      headers: headers,
+      onError: (ApiException exception, String type) {
+        if (onError != null) {
+          onError();
+        }
+        statusLodData.value[type] = ApiCallStatus.error;
+        isLodData.value[type]?.value = false;
+        onErrorApi(exception, type);
+        _checkLoad();
+      },
+      queryParameters: url.parameter,
+      onSuccess: (re, type) {
+        try {
+          if (onSuccess != null) {
+            onSuccess();
+          }
           getDataFromJson(json: re.data, type: url.type);
           statusLodData.value[type] = ApiCallStatus.success;
           isLodData.value[type]?.value = false;
