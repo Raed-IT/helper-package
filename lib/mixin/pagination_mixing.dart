@@ -6,6 +6,8 @@ import 'package:dio/dio.dart' as dio;
 
 mixin PaginationMixin<T> {
   RxBool isLoadMore = RxBool(false);
+  RxBool isFinish = RxBool(false);
+  RxBool isLoadPaginationData = RxBool(false);
   String? paginationUrl;
   RxList<T> paginationData = RxList([]);
   bool isFirstPage = false;
@@ -26,12 +28,7 @@ mixin PaginationMixin<T> {
     /// [getNextUrlForPaginationUsing] return null if current page is last page else return next page url  or not used
 
     nextPageUrl = urlDAta;
-    // } else {
-    // data = data['data'];
-    // if (data.containsKey("pagination")) {
-    //   nextPageUrl = data["pagination"]['next_page_url'];
-    //   // total.value = data["pagination"]['total'];
-    // }
+    // isFirstPage = nextPageUrl == null;
   }
 
   void setData(Map<String, dynamic>? mapData, bool isRefresh) {
@@ -69,8 +66,8 @@ mixin PaginationMixin<T> {
     }
 
     //get fresh data now
-    if (nextPageUrl == null && !isLoadMore.value && isFirstPage) {
-      isLoadMore.value = true;
+    if (nextPageUrl == null && !isLoadPaginationData.value && isFirstPage) {
+      isLoadPaginationData.value = true;
       try {
         dio.Response? response = await BaseClient.apiCall(
             url: paginationUrl!,
@@ -79,15 +76,37 @@ mixin PaginationMixin<T> {
             onSuccess: (res, ty) {
               onSuccess?.call();
             });
-        isLoadMore.value = false;
+        isLoadPaginationData.value = false;
         setData(response!.data, isRefresh);
         setPaginationData(response.data);
       } catch (e) {
         onError?.call();
       }
-      isLoadMore.value = false;
+      isLoadPaginationData.value = false;
       isFirstPage = false;
+    } else {
+      if (nextPageUrl != null && !isLoadMore.value) {
+        isFinish.value = false;
+        isLoadMore.value = true;
+        try {
+          dio.Response? response = await BaseClient.apiCall(
+              url: nextPageUrl!,
+              type: "Pagination",
+              requestType: RequestType.get,
+              onSuccess: (res, ty) {
+                onSuccess?.call();
+              });
+          isLoadMore.value = false;
+          setData(response!.data, isRefresh);
+          setPaginationData(response.data);
+        } catch (e) {
+          onError?.call();
+        }
+        isLoadMore.value = false;
+        isFirstPage = false;
+      } else {
+        isFinish.value = true;
+      }
     }
-    isLoadMore.value = false;
   }
 }
