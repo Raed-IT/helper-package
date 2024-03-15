@@ -36,7 +36,7 @@ class BaseClient {
   static get dio => _dio;
 
   /// perform safe api request
-  static Future apiCall({
+  static Future<Response?> apiCall({
     required String url,
     required String type,
     required RequestType requestType,
@@ -49,6 +49,7 @@ class BaseClient {
     Function? onLoading,
     dynamic data,
   }) async {
+
     try {
       // 1) indicate loading state
       await onLoading?.call();
@@ -92,6 +93,7 @@ class BaseClient {
       }
       // 3) return response (api done successfully)
       await onSuccess(response, type);
+      return response;
     } on DioException catch (error) {
       // dio error (api reach the server but not performed successfully
       _handleDioError(
@@ -137,6 +139,7 @@ class BaseClient {
           error: error);
       Exception(error);
     }
+    return null;
   }
 
   /// download file
