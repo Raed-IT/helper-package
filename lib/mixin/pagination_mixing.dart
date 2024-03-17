@@ -33,6 +33,8 @@ mixin PaginationMixin<T> {
       paginationParameter.forEach((key, value) {
         parameterAsString += "$key=$value&&";
       });
+      parameterAsString.replaceRange(
+          parameterAsString.length - 2, parameterAsString.length, '');
       nextPageUrl = "$nextPageUrl&&$parameterAsString";
     }
   }
@@ -81,6 +83,9 @@ mixin PaginationMixin<T> {
           paginationParameter.forEach((key, value) {
             url += "$key=$value&&";
           });
+          url.replaceRange(
+              url.length - 2, url.length, '');
+
         }
         dio.Response? response = await BaseClient.apiCall(
             url: url,
