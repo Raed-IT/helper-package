@@ -82,6 +82,7 @@ mixin PaginationMixin<T> {
           paginationParameter.forEach((key, value) {
             url += "$key=$value&&";
           });
+          // remove && from url
           url.substring(0, url.length - 2);
         }
         dio.Response? response = await BaseClient.apiCall(
