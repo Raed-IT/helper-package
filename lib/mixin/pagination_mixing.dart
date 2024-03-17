@@ -28,7 +28,13 @@ mixin PaginationMixin<T> {
     /// [getNextUrlForPaginationUsing] return null if current page is last page else return next page url  or not used
 
     nextPageUrl = urlDAta;
-    // isFirstPage = nextPageUrl == null;
+    if (nextPageUrl != null) {
+      String parameterAsString = "";
+      paginationParameter.forEach((key, value) {
+        parameterAsString += "$key=$value&&";
+      });
+      nextPageUrl = "$nextPageUrl&&$parameterAsString";
+    }
   }
 
   void setData(Map<String, dynamic>? mapData, bool isRefresh) {
@@ -69,8 +75,15 @@ mixin PaginationMixin<T> {
     if (nextPageUrl == null && !isLoadPaginationData.value && isFirstPage) {
       isLoadPaginationData.value = true;
       try {
+        String url = "$paginationUrl";
+        if (paginationParameter.isNotEmpty) {
+          url = "$paginationUrl?";
+          paginationParameter.forEach((key, value) {
+            url += "$key=$value&&";
+          });
+        }
         dio.Response? response = await BaseClient.apiCall(
-            url: paginationUrl!,
+            url: url,
             type: "Pagination",
             requestType: RequestType.get,
             onSuccess: (res, ty) {
