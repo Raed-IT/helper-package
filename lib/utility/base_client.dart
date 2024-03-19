@@ -17,13 +17,6 @@ typedef OnReceiveProgress = Function(int value, int progress)?;
 typedef OnSendProgress = Function(int total, int progress)?;
 
 class BaseClient {
-  BaseClient() {
-    HelperConstant.token.listen((p0) {
-      HelperConstant.globalHeader['Authorization'] = 'Bearer $p0';
-      _dio.options = BaseOptions(headers: HelperConstant.globalHeader);
-    });
-  }
-
   static final Dio _dio = Dio(
     BaseOptions(headers: HelperConstant.globalHeader),
   )..interceptors.add(
@@ -58,6 +51,14 @@ class BaseClient {
     Function? onLoading,
     dynamic data,
   }) async {
+    if (HelperConstant.token != null) {
+      HelperConstant.globalHeader['Authorization'] =
+          'Bearer ${HelperConstant.token}';
+      _dio.options = BaseOptions(headers: HelperConstant.globalHeader);
+    } else {
+      HelperConstant.globalHeader.remove("Authorization");
+      _dio.options = BaseOptions(headers: HelperConstant.globalHeader);
+    }
     try {
       // 1) indicate loading state
       await onLoading?.call();

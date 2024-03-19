@@ -8,7 +8,7 @@ class HelperConstant {
   static final HelperConstant instance = HelperConstant._();
 
   static const double fontSize = 15;
-  static Rxn<String> token = Rxn();
+  static String? token ;
   static String local = "ar";
   static ApiConfig apiConfig = ApiConfig.printResponse();
   static Map<String, dynamic> globalHeader = {
