@@ -17,18 +17,27 @@ typedef OnReceiveProgress = Function(int value, int progress)?;
 typedef OnSendProgress = Function(int total, int progress)?;
 
 class BaseClient {
+  BaseClient() {
+    HelperConstant.token.listen((p0) {
+      HelperConstant.globalHeader['Authorization'] = 'Bearer $p0';
+      _dio.options = BaseOptions(headers: HelperConstant.globalHeader);
+    });
+  }
+
   static final Dio _dio = Dio(
     BaseOptions(headers: HelperConstant.globalHeader),
-  )..interceptors.add(PrettyDioLogger(
-      requestHeader: HelperConstant.apiConfig.requestHeader,
-      requestBody: HelperConstant.apiConfig.requestBody,
-      responseBody: HelperConstant.apiConfig.responseBody,
-      responseHeader: HelperConstant.apiConfig.responseHeader,
-      error: HelperConstant.apiConfig.error,
-      compact: HelperConstant.apiConfig.compact,
-      request: HelperConstant.apiConfig.request,
-      maxWidth: 90,
-    ));
+  )..interceptors.add(
+      PrettyDioLogger(
+        requestHeader: HelperConstant.apiConfig.requestHeader,
+        requestBody: HelperConstant.apiConfig.requestBody,
+        responseBody: HelperConstant.apiConfig.responseBody,
+        responseHeader: HelperConstant.apiConfig.responseHeader,
+        error: HelperConstant.apiConfig.error,
+        compact: HelperConstant.apiConfig.compact,
+        request: HelperConstant.apiConfig.request,
+        maxWidth: 90,
+      ),
+    );
 
   static const int _timeoutInSeconds = 15;
 
@@ -49,7 +58,6 @@ class BaseClient {
     Function? onLoading,
     dynamic data,
   }) async {
-
     try {
       // 1) indicate loading state
       await onLoading?.call();
