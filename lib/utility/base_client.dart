@@ -42,6 +42,7 @@ class BaseClient {
     required String url,
     required String type,
     required RequestType requestType,
+    ResponseType? responseType,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? queryParameters,
     required OnSuccess onSuccess,
@@ -54,10 +55,14 @@ class BaseClient {
     if (HelperConstant.token != null) {
       HelperConstant.globalHeader['Authorization'] =
           'Bearer ${HelperConstant.token}';
-      _dio.options = BaseOptions(headers: HelperConstant.globalHeader);
+      _dio.options = BaseOptions(
+          headers: HelperConstant.globalHeader,
+          responseType: responseType ?? ResponseType.json);
     } else {
       HelperConstant.globalHeader.remove("Authorization");
-      _dio.options = BaseOptions(headers: HelperConstant.globalHeader);
+      _dio.options = BaseOptions(
+          headers: HelperConstant.globalHeader,
+          responseType: responseType ?? ResponseType.json);
     }
     try {
       // 1) indicate loading state

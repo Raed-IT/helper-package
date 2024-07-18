@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import 'package:helper/data/models/url_model.dart';
 import 'package:helper/helper.dart';
@@ -164,6 +165,7 @@ mixin ApiHelperMixin {
 
   Future postData({
     required String url,
+    ResponseType? responseType,
     Function(int, int)? onReceiveProgress,
     required dynamic data,
     required OnSuccess onSuccess,
@@ -181,6 +183,7 @@ mixin ApiHelperMixin {
     if (!isPostData.value) {
       isPostData.value = true;
       return await BaseClient.apiCall(
+          responseType: responseType,
           url: url,
           type: 'post',
           requestType: requestType,
